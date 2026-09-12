@@ -1,0 +1,6 @@
+id=meta-earbud-background
+name=Meta Glasses Earbud Background
+version=1.0.2
+versionCode=12
+author=Meta Earbud Background contributors
+description=Enable Meta glasses Pause and Battery saver when a configured Bluetooth headset connects. Meta AI 289.0.0.25.162 only.

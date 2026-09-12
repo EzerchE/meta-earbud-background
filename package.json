@@ -1,0 +1,10 @@
+{
+  "name": "meta-earbud-background",
+  "version": "1.0.2",
+  "private": true,
+  "description": "Screen-off Meta glasses Pause and Battery saver automation for KernelSU",
+  "dependencies": {
+    "frida-compile": "19.0.5",
+    "frida-java-bridge": "7.0.13"
+  }
+}
