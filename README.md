@@ -18,7 +18,7 @@ This is an experimental module. Android 16 is the reference platform; compatibil
 
 ## Install and configure
 
-1. Download `meta-earbud-background-v1.0.2-public.zip` from [Releases](../../releases).
+1. Download `meta-earbud-background-v1.1.0-public.zip` from [Releases](../../releases).
 2. Install it through **KernelSU → Modules → Install**, then reboot.
 3. Open a root terminal, or run `adb shell` followed by `su`.
 4. Start setup:
@@ -27,7 +27,7 @@ This is an experimental module. Android 16 is the reference platform; compatibil
 sh /data/adb/modules/meta-earbud-background/configure.sh
 ```
 
-5. At the prompts, enter your headset's Bluetooth address and your glasses' Bluetooth / Meta DeviceRecord address. Use colon-separated addresses, not device names or serial numbers.
+5. At the prompts, enter your headset's Bluetooth address and your glasses' Bluetooth / Meta DeviceRecord address. Use colon-separated addresses for the first two prompts; at the third prompt enter the glasses' exact Bluetooth display name (not a serial number).
 6. Reboot. With the glasses connected, connect your headset and check that both settings enable. Disconnect it and check that the previous values return.
 
 The ZIP is inactive until configured. Addresses are entered locally and are not included in the downloaded package. No source compilation is needed for installation. See the [installation guide](docs/release-install.md) for address lookup and upgrades.
@@ -40,10 +40,12 @@ The ZIP is inactive until configured. Addresses are entered locally and are not 
 | Selected headset disconnects | Restore previous settings. |
 | Another headset connects | Ignore it. |
 | Screen is off | Continue in the background. |
-| Glasses are unavailable | Wait for their connection. |
+| Glasses are disconnected | Stop the module's listener; do not start Meta or inject. |
 | Unsupported Meta AI build | Do not activate the adapter. |
 
 Connection changes are debounced for about 2.5 seconds. Synchronizing Battery saver may take around 10 seconds. Pause is set for eight hours and renewed hourly while the headset stays connected; an existing longer pause is preserved. Battery saver applies Meta's normal restrictions, including its effect on the wake word.
+
+Disconnected checks run every 60 seconds without a wake alarm; connected checks run every 30 seconds. Reconnection may take a check interval or longer during device sleep. Unknown Bluetooth dump formats do not start/inject; an already attached listener is retained until disconnection can be confirmed. Meta's own background activity is not force-stopped, and zero RAM/power consumption is not promised.
 
 ## Status and troubleshooting
 
@@ -68,6 +70,10 @@ Disconnect the selected headset while the glasses remain connected and confirm t
 
 Stopping or uninstalling the module does not itself restore the glasses settings. A reboot removes callbacks from an older adapter; it is required when switching versions. Restoration cannot be verified while the glasses are disconnected.
 
+## Validation and limitations
+
+v1.1.0 is a pre-release. Policy tests cover disconnected/connected/unknown states, retries and singleton handling. The underlying personalized controller was checked on Nothing Phone (1) / crDroid Android 16 with glasses disconnected. The configurable public archive has host packaging/configuration tests and Android-shell policy checks, but a fresh-install physical reconnection/restoration test is still pending. No measured battery-savings claim is made.
+
 ## Build from source
 
 Clone this repository using its **Code** menu, then run:
@@ -80,7 +86,7 @@ python scripts/build.py
 
 Requirements: Node.js/npm, Python 3.10+ and internet access for the official Frida download. Windows may use `py -3` instead of `python`. Android SDK and Gradle are not required.
 
-The builder always produces the same address-free template type as the public download. It does not read local device configuration. Output: `dist/meta-earbud-background-v1.0.2-public.zip`.
+The builder always produces the same address-free template type as the public download. It does not read local device configuration. Output: `dist/meta-earbud-background-v1.1.0-public.zip`.
 
 An existing official Frida archive can be supplied with `--inject-xz /path/to/frida-inject-17.18.0-android-arm64.xz`. Its pinned SHA-256 is verified before packaging. Third-party notices are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 

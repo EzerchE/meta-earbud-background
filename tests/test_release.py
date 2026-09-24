@@ -11,7 +11,7 @@ import unittest
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
-PUBLIC = ROOT / "dist/meta-earbud-background-v1.0.2-public.zip"
+PUBLIC = ROOT / "dist/meta-earbud-background-v1.1.0-public.zip"
 BASH = os.environ.get("TEST_BASH") or shutil.which("bash")
 HEADSET = ":".join(["02", "00", "00", "00", "00", "01"])
 GLASSES = ":".join(["02", "00", "00", "00", "00", "02"])
@@ -28,6 +28,8 @@ class ReleaseTests(unittest.TestCase):
         self.temp.cleanup()
 
     def configure(self, *args, input_text=None):
+        if len(args) == 2:
+            args = (*args, "Example Glasses")
         # Simulate root for a host-only configuration fixture, never a phone.
         return subprocess.run([BASH, "-c", 'id() { echo 0; }; export -f id; exec bash "$@"',
                                "fixture", (self.folder / "configure.sh").as_posix(), *args],
@@ -35,6 +37,8 @@ class ReleaseTests(unittest.TestCase):
 
     def test_public_archive_is_inactive_and_contains_no_configuration(self):
         self.assertFalse((self.folder / "background.js").exists())
+        self.assertFalse((self.folder / "glasses-name").exists())
+        self.assertTrue((self.folder / "policy.sh").is_file())
         template = (self.folder / "background.template.js").read_text(encoding="utf-8")
         self.assertEqual(template.count("HEADSET_BLUETOOTH_ADDRESS"), 1)
         self.assertEqual(template.count("GLASSES_DEVICE_RECORD_ADDRESS"), 1)
@@ -49,6 +53,7 @@ class ReleaseTests(unittest.TestCase):
         template = (self.folder / "background.template.js").read_text(encoding="utf-8")
         configured = (self.folder / "background.js").read_text(encoding="utf-8")
         self.assertEqual(configured, template.replace("HEADSET_BLUETOOTH_ADDRESS", HEADSET).replace("GLASSES_DEVICE_RECORD_ADDRESS", GLASSES))
+        self.assertEqual((self.folder / "glasses-name").read_text().strip(), "Example Glasses")
         self.assertNotIn(HEADSET, result.stdout)
         self.assertNotIn(GLASSES, result.stdout)
         subprocess.run(["node", "--check", str(self.folder / "background.js")], check=True, capture_output=True)
@@ -71,7 +76,7 @@ class ReleaseTests(unittest.TestCase):
     def test_interactive_setup_uses_the_installing_users_addresses(self):
         headset = ":".join(["02", "AB", "CD", "EF", "11", "22"])
         glasses = ":".join(["02", "BA", "DC", "FE", "33", "44"])
-        result = self.configure(input_text=f"{headset.lower()}\n{glasses.lower()}\n")
+        result = self.configure(input_text=f"{headset.lower()}\n{glasses.lower()}\nExample Glasses\n")
         self.assertEqual(result.returncode, 0, result.stderr)
         configured = (self.folder / "background.js").read_text(encoding="utf-8")
         self.assertIn(headset, configured)
@@ -85,6 +90,28 @@ class ReleaseTests(unittest.TestCase):
         result = self.configure(input_text=HEADSET + "\n")
         self.assertNotEqual(result.returncode, 0)
         self.assertFalse((self.folder / "background.js").exists())
+
+    def test_invalid_names_stay_inactive(self):
+        for name in ["", "bad\nname", "bad\rname", "bad\tname", "bad\\name", "bad[name]", " leading", "trailing ", "a" * 81]:
+            with self.subTest(name=repr(name)):
+                result = self.configure(HEADSET, GLASSES, name)
+                self.assertNotEqual(result.returncode, 0)
+                self.assertFalse((self.folder / "background.js").exists())
+                self.assertFalse((self.folder / "glasses-name").exists())
+
+    def test_name_is_data_not_shell_code(self):
+        name = '$(touch SHOULD_NOT_EXIST); "Glasses"'
+        result = self.configure(HEADSET, GLASSES, name)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual((self.folder / "glasses-name").read_text().strip(), name)
+        self.assertFalse((ROOT / "SHOULD_NOT_EXIST").exists())
+
+    def test_disconnected_policy_state_machine(self):
+        result = self.configure(HEADSET, GLASSES)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        result = subprocess.run([BASH, str(ROOT / "tests/test-policy.sh"), self.folder.as_posix()], capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("PASS 27 assertions", result.stdout)
 
     def test_builder_rejects_device_specific_configuration(self):
         import sys

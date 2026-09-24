@@ -9,6 +9,6 @@ set_perm "$MODPATH/meta-inject" 0 0 0755
 set_perm "$MODPATH/configure.sh" 0 0 0700
 if [ -f "$MODPATH/background.template.js" ]; then
   # An upgrade must not silently reuse a previous device-specific bundle.
-  rm -f "$MODPATH/background.js"
+  rm -f "$MODPATH/background.js" "$MODPATH/glasses-name"
   ui_print "Configuration required after install: see INSTALL.md"
 fi

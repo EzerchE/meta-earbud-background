@@ -18,7 +18,7 @@ Modül deneyseldir. Referans platform Android 16'dır; farklı ROM, gözlük yaz
 
 ## Kurulum ve yapılandırma
 
-1. [Releases](../../releases) sayfasından `meta-earbud-background-v1.0.2-public.zip` dosyasını indirin.
+1. [Releases](../../releases) sayfasından `meta-earbud-background-v1.1.0-public.zip` dosyasını indirin.
 2. **KernelSU → Modüller → Yükle** yoluyla kurun ve telefonu yeniden başlatın.
 3. Root terminali açın veya `adb shell` ardından `su` çalıştırın.
 4. Kurulumu başlatın:
@@ -27,7 +27,7 @@ Modül deneyseldir. Referans platform Android 16'dır; farklı ROM, gözlük yaz
 sh /data/adb/modules/meta-earbud-background/configure.sh
 ```
 
-5. Sorulduğunda kendi kulaklığınızın Bluetooth adresini ve gözlüğünüzün Bluetooth / Meta DeviceRecord adresini girin. Cihaz adı veya seri numarası değil, iki noktayla ayrılmış adresler gerekir.
+5. Sorulduğunda kendi kulaklığınızın Bluetooth adresini ve gözlüğünüzün Bluetooth / Meta DeviceRecord adresini girin. İlk iki soruda iki noktayla ayrılmış adresleri; üçüncü soruda gözlüğün Bluetooth'ta görünen tam adını girin (seri numarasını değil).
 6. Yeniden başlatın. Gözlük bağlıyken kulaklığı bağlayıp iki ayarın açıldığını; kulaklığı ayırınca önceki değerlerin geri geldiğini kontrol edin.
 
 ZIP yapılandırılana kadar pasiftir. Adresler yalnızca telefonda girilir; indirilen pakette bulunmaz. Kurulum için kaynak kod derlemek gerekmez. Adres bulma ve sürüm değiştirme ayrıntıları [kurulum rehberindedir](docs/release-install.md).
@@ -40,10 +40,12 @@ ZIP yapılandırılana kadar pasiftir. Adresler yalnızca telefonda girilir; ind
 | Seçilen kulaklık ayrılır | Önceki ayarlar geri yüklenir. |
 | Başka kulaklık bağlanır | Dikkate alınmaz. |
 | Ekran kapalıdır | Arka planda çalışmaya devam eder. |
-| Gözlüğe ulaşılamaz | Bağlantı beklenir. |
+| Gözlük bağlı değil | Modül dinleyicisi durur; Meta başlatılmaz ve aracı yüklenmez. |
 | Meta AI sürümü desteklenmez | Adaptör etkinleştirilmez. |
 
 Bağlantı değişiklikleri yaklaşık 2,5 saniye bekletilir. Battery saver eşitlemesi yaklaşık 10 saniye sürebilir. Pause sekiz saat için açılır ve kulaklık bağlı kaldıkça saatte bir yenilenir; mevcut daha uzun süre korunur. Battery saver, uyandırma sözcüğü üzerindeki etkisi dahil Meta'nın normal kısıtlamalarını uygular.
+
+Bağlantı yokken kontrol 60, bağlıyken 30 saniyedir; uyandırma alarmı kullanılmaz. Yeniden bağlanma bir kontrol aralığı, cihaz uyuyorsa daha uzun sürebilir. Bluetooth biçimi okunamazsa yeni iş başlatılmaz; mevcut dinleyici kesin kopma görülene kadar tutulur. Meta'nın kendi işleri zorla durdurulmaz; sıfır RAM/güç tüketimi vaat edilmez.
 
 ## Durum ve sorun giderme
 
@@ -68,6 +70,10 @@ Gözlük bağlı kalırken seçilen kulaklığı ayırın ve önceki ayarların 
 
 Modülü durdurmak veya kaldırmak gözlük ayarlarını kendiliğinden geri yüklemez. Sürüm değiştirirken eski adaptörün bellekte kalmaması için yeniden başlatma gereklidir. Gözlük bağlantısı yokken geri yükleme doğrulanamaz.
 
+## Test durumu
+
+v1.1.0 ön sürümdür. Temel kişisel denetleyici Nothing Phone (1) / crDroid Android 16 üzerinde gözlük bağlı değilken doğrulandı. Genel paket yapılandırma/paketleme ve Android kabuk politika testlerinden geçirilir; genel paketin temiz kurulumla fiziksel yeniden bağlanma/ayar geri yükleme testi henüz tamamlanmadı. Ölçülmüş pil kazancı iddia edilmiyor.
+
 ## Kaynaktan derleme
 
 Deponun **Code** menüsünden klonlama adresini alıp klonlayın, ardından:
@@ -80,7 +86,7 @@ python scripts/build.py
 
 Gereksinimler: Node.js/npm, Python 3.10+ ve resmi Frida indirmesi için internet. Windows'ta Python komutu `py -3` olabilir. Android SDK ve Gradle gerekmez.
 
-Derleme her zaman genel indirmeyle aynı türde, adres içermeyen şablon üretir. Yerel cihaz yapılandırmasını okumaz. Çıktı: `dist/meta-earbud-background-v1.0.2-public.zip`.
+Derleme her zaman genel indirmeyle aynı türde, adres içermeyen şablon üretir. Yerel cihaz yapılandırmasını okumaz. Çıktı: `dist/meta-earbud-background-v1.1.0-public.zip`.
 
 İndirilmiş resmi Frida arşivi `--inject-xz /path/to/frida-inject-17.18.0-android-arm64.xz` ile verilebilir. Paketlenmeden önce sabit SHA-256 değeri doğrulanır. Üçüncü taraf bildirimleri [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) dosyasındadır.
 

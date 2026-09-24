@@ -1,5 +1,8 @@
 #!/system/bin/sh
-am broadcast -a io.github.metaearbud.background.STOP_BACKGROUND -p com.facebook.stella >/dev/null 2>&1
+MODDIR=${0%/*}
 STATE=/data/adb/meta-earbud-background
-if [ -f "$STATE/service.pid" ]; then kill "$(cat "$STATE/service.pid")" 2>/dev/null; fi
-# Preserve the restore point inside Meta AI; it belongs to an unfinished session.
+. "$MODDIR/policy.sh"
+p=$(cat "$STATE/service.pid" 2>/dev/null)
+if controller_pid_valid "$p"; then kill "$p" 2>/dev/null; fi
+send_stop
+# Keep restore preferences. No app force-stop and no Bluetooth changes.

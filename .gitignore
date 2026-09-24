@@ -1,5 +1,7 @@
 node_modules/
 config.json
+module/glasses-name
+module/background.js
 src/config.generated.js
 build/
 dist/

@@ -12,7 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 FRIDA_VERSION = "17.18.0"
 FRIDA_URL = f"https://github.com/frida/frida/releases/download/{FRIDA_VERSION}/frida-inject-{FRIDA_VERSION}-android-arm64.xz"
 FRIDA_SHA256 = "a72de74276d914f6769b8b85f8dd287cbafa4527c42ae1c8dd87b0d23d261391"
-MODULE_VERSION = "1.0.2"
+MODULE_VERSION = "1.1.0"
 
 
 def main():
@@ -48,7 +48,7 @@ def main():
     dist.mkdir(exist_ok=True)
     output = dist / f"meta-earbud-background-v{MODULE_VERSION}-public.zip"
     with zipfile.ZipFile(output, "w", zipfile.ZIP_DEFLATED) as package:
-        for name in ("action.sh", "configure.sh", "customize.sh", "module.prop", "service.sh", "uninstall.sh"):
+        for name in ("action.sh", "configure.sh", "customize.sh", "module.prop", "policy.sh", "service.sh", "uninstall.sh"):
             source = ROOT / "module" / name
             entry = zipfile.ZipInfo(name)
             entry.external_attr = (0o100755 if source.suffix == ".sh" else 0o100644) << 16
