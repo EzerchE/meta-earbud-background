@@ -4,7 +4,7 @@ MODDIR=$1
 . "$MODDIR/policy.sh"
 GLASSES_NAME="Example Glasses"
 STATE=$(mktemp -d)
-trap 'rm -f "$STATE/events" "$STATE/status" "$STATE/agent.pid"; rmdir "$STATE"' EXIT
+trap 'rm -f "$STATE/events" "$STATE/status" "$STATE/agent.pid" "$STATE/service.sh"; rmdir "$STATE"' EXIT
 : > "$STATE/events"
 passed=0
 assert_eq() {
@@ -28,6 +28,16 @@ assert_eq "$( { fixture N N; fixture Y N; } | parse_glasses)" unknown ambiguity
 assert_eq "$(printf '' | parse_glasses)" unknown empty
 assert_eq "$(controller_pid_valid 99999999 && echo yes || echo no)" no stale_pid
 assert_eq "$(controller_pid_valid $$ && echo yes || echo no)" no unrelated_pid
+saved_moddir=$MODDIR
+printf 'sleep 3\n' > "$STATE/service.sh"
+sh "$STATE/service.sh" &
+fixture_pid=$!
+MODDIR=$STATE
+sleep 0.1
+assert_eq "$(controller_pid_valid "$fixture_pid" && echo yes || echo no)" yes exact_controller
+wait "$fixture_pid"
+assert_eq "$(controller_pid_valid "$fixture_pid" && echo yes || echo no)" no exited_controller
+MODDIR=$saved_moddir
 
 # Test actual policy, replacing only platform calls with observable fakes.
 probe_glasses() { echo "$TEST_CONNECTION"; }
@@ -37,11 +47,22 @@ start_meta() { echo start >> "$STATE/events"; }
 send_stop() { echo stop >> "$STATE/events"; return "$STOP_RESULT"; }
 inject_meta() { echo inject >> "$STATE/events"; return "$INJECT_RESULT"; }
 reset_case() {
-  LAST_PID=; LAST_STATUS=; VERSION=; CHECKED_PID=; START_BACKOFF=0
+  LAST_PID=; LAST_STATUS=; VERSION=; CHECKED_PID=; START_BACKOFF=0; RETIRE_CONTROLLER=0
   TEST_PID=100; TEST_VERSION=$SUPPORTED_VERSION; INJECT_RESULT=0; STOP_RESULT=0
   : > "$STATE/events"
 }
 events() { tr '\n' ',' < "$STATE/events"; }
+reset_case
+compatibility_preflight
+assert_eq "$(events)" 'version,' 'preflight is package-only'
+reset_case
+TEST_VERSION=unsupported
+compatibility_preflight && exit 1
+assert_eq "$(events)" 'version,' 'unsupported no Bluetooth/start/inject'
+reset_case
+TEST_VERSION=
+compatibility_preflight && exit 1
+assert_eq "$(events)" 'version,' 'unreadable fails closed'
 reset_case
 TEST_CONNECTION=disconnected
 policy_step
@@ -64,6 +85,7 @@ TEST_CONNECTION=connected; TEST_VERSION=unsupported
 policy_step
 policy_step
 assert_eq "$(events)" 'version,' 'mismatch no injection'
+assert_eq "$RETIRE_CONTROLLER" 1 'mismatch retires controller'
 reset_case
 TEST_CONNECTION=connected; TEST_PID=
 policy_step

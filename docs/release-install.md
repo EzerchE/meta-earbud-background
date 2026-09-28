@@ -4,7 +4,7 @@ The module requires KernelSU, a primary-user Android arm64 installation, Meta AI
 
 ## First installation
 
-1. Install `meta-earbud-background-v1.1.0-public.zip` through KernelSU and reboot.
+1. Install `meta-earbud-background-v1.1.1-public.zip` through KernelSU and reboot.
 2. Open a root terminal, or run `adb shell` followed by `su`.
 3. Run the setup command below. Enter your own headset and glasses addresses at the first two prompts, then the exact glasses Bluetooth display name at the third.
 
@@ -46,6 +46,12 @@ The KernelSU **Action** button displays status. `WAITING_FOR_CONFIGURATION` mean
 
 This is an experimental module. It does not provide audio forwarding or universal compatibility across Android ROMs and glasses firmware.
 
-## Disconnected idle behavior in 1.1.0
+## Compatibility and disconnected idle behavior in 1.1.1
 
-The controller checks every 60 seconds while disconnected/unknown, 30 seconds while connected, without wake alarms. No Meta package lookup, service startup or injection occurs while disconnected. The module stops its own listener once, not the app. Confirm reconnection and restoration yourself before relying on the pre-release. A suspended phone may delay checks. If the name changes, follow the device-change procedure; do not edit or share a configured bundle.
+At startup a package-version preflight runs before Bluetooth probing. Unsupported
+or unreadable builds exit entirely, without a polling loop. Retry after installing
+a compatible adapter/app by rebooting. Action only shows status. Supported builds
+check every 60 seconds while disconnected/unknown and 30 seconds while connected,
+without wake alarms. The module stops its own listener, not the app. Confirm
+physical reconnection/restoration yourself; these are not guaranteed by shell
+tests. A suspended phone may delay checks. Do not share a configured bundle.

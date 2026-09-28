@@ -12,7 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 FRIDA_VERSION = "17.18.0"
 FRIDA_URL = f"https://github.com/frida/frida/releases/download/{FRIDA_VERSION}/frida-inject-{FRIDA_VERSION}-android-arm64.xz"
 FRIDA_SHA256 = "a72de74276d914f6769b8b85f8dd287cbafa4527c42ae1c8dd87b0d23d261391"
-MODULE_VERSION = "1.1.0"
+MODULE_VERSION = "1.1.1"
 
 
 def main():

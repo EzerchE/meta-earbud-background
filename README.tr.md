@@ -6,6 +6,12 @@ Seçtiğiniz Bluetooth kulaklık bağlandığında Meta gözlükte **Pause** ve 
 
 Modül gözlük sesini kulaklığa **aktarmıyor**.
 
+1.1.1 bakım sürümü: başlangıçta uygulama sürümü bir kez okunur. Desteklenmeyen
+veya okunamayan sürümde denetleyici tamamen çıkar; Bluetooth sorgulama döngüsü
+çalışmaz. Meta 290.1 desteği eklenmemiştir; özel API güvenlik kontrolleri korunur.
+Uyumlu adaptör/uygulama kurulduktan sonra yeniden başlatma tekrar kontrol eder.
+Action yalnızca durum gösterir. Paket [Releases](../../releases) bölümündedir.
+
 ## Gereksinimler
 
 - KernelSU bulunan root erişimli Android arm64 telefon ve birincil Android kullanıcı profili.
@@ -18,7 +24,7 @@ Modül deneyseldir. Referans platform Android 16'dır; farklı ROM, gözlük yaz
 
 ## Kurulum ve yapılandırma
 
-1. [Releases](../../releases) sayfasından `meta-earbud-background-v1.1.0-public.zip` dosyasını indirin.
+1. [Releases](../../releases) sayfasından `meta-earbud-background-v1.1.1-public.zip` dosyasını indirin.
 2. **KernelSU → Modüller → Yükle** yoluyla kurun ve telefonu yeniden başlatın.
 3. Root terminali açın veya `adb shell` ardından `su` çalıştırın.
 4. Kurulumu başlatın:
@@ -72,7 +78,7 @@ Modülü durdurmak veya kaldırmak gözlük ayarlarını kendiliğinden geri yü
 
 ## Test durumu
 
-v1.1.0 ön sürümdür. Temel kişisel denetleyici Nothing Phone (1) / crDroid Android 16 üzerinde gözlük bağlı değilken doğrulandı. Genel paket yapılandırma/paketleme ve Android kabuk politika testlerinden geçirilir; genel paketin temiz kurulumla fiziksel yeniden bağlanma/ayar geri yükleme testi henüz tamamlanmadı. Ölçülmüş pil kazancı iddia edilmiyor.
+v1.1.1 ön sürümdür. Temel kişisel denetleyici Nothing Phone (1) / crDroid Android 16 üzerinde gözlük bağlı değilken doğrulandı. Genel paket yapılandırma/paketleme ve Android kabuk politika testlerinden geçirilir; genel paketin temiz kurulumla fiziksel yeniden bağlanma/ayar geri yükleme testi henüz tamamlanmadı. Ölçülmüş pil kazancı iddia edilmiyor.
 
 ## Kaynaktan derleme
 
@@ -86,7 +92,7 @@ python scripts/build.py
 
 Gereksinimler: Node.js/npm, Python 3.10+ ve resmi Frida indirmesi için internet. Windows'ta Python komutu `py -3` olabilir. Android SDK ve Gradle gerekmez.
 
-Derleme her zaman genel indirmeyle aynı türde, adres içermeyen şablon üretir. Yerel cihaz yapılandırmasını okumaz. Çıktı: `dist/meta-earbud-background-v1.1.0-public.zip`.
+Derleme her zaman genel indirmeyle aynı türde, adres içermeyen şablon üretir. Yerel cihaz yapılandırmasını okumaz. Çıktı: `dist/meta-earbud-background-v1.1.1-public.zip`.
 
 İndirilmiş resmi Frida arşivi `--inject-xz /path/to/frida-inject-17.18.0-android-arm64.xz` ile verilebilir. Paketlenmeden önce sabit SHA-256 değeri doğrulanır. Üçüncü taraf bildirimleri [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) dosyasındadır.
 

@@ -16,6 +16,7 @@ LAST_STATUS=
 CHECKED_PID=
 VERSION=
 START_BACKOFF=0
+RETIRE_CONTROLLER=0
 cleanup() {
   stop_owned_agent
   [ "$(cat "$STATE/service.pid" 2>/dev/null)" != "$$" ] || rm -f "$STATE/service.pid"
@@ -26,7 +27,9 @@ while [ "$(getprop sys.boot_completed)" != 1 ]; do
   [ ! -f "$MODDIR/disable" ] && [ ! -f "$MODDIR/remove" ] || exit 0
   sleep 5 9>&-
 done
+compatibility_preflight || exit 0
 while [ ! -f "$MODDIR/disable" ] && [ ! -f "$MODDIR/remove" ]; do
   policy_step
+  [ "$RETIRE_CONTROLLER" = 0 ] || exit 0
   sleep "$NEXT_SLEEP" 9>&-
 done

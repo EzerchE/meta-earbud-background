@@ -31,7 +31,10 @@ parse_glasses() {
 controller_pid_valid() {
   case "$1" in ''|*[!0-9]*) return 1 ;; esac
   [ -r "/proc/$1/cmdline" ] || return 1
-  tr '\000' '\n' < "/proc/$1/cmdline" | grep -Fxq "$MODDIR/service.sh"
+  # The process can exit between the readability check and read. Bound procfs
+  # I/O; never feed tr directly from a disappearing proc file.
+  timeout 2 dd if="/proc/$1/cmdline" bs=4096 count=1 2>/dev/null |
+    tr '\000' '\n' | grep -Fxq "$MODDIR/service.sh"
 }
 set_status() {
   [ "${LAST_STATUS:-}" = "$1" ] && return
@@ -69,6 +72,20 @@ stop_owned_agent() {
   LAST_PID=
   rm -f "$STATE/agent.pid"
 }
+compatibility_preflight() {
+  # Once at startup, before any Bluetooth dump or app launch. A known
+  # unsupported build cannot benefit from connection polling. Do not remove
+  # the private adapter's build guard: matching APIs alone is not proof that
+  # obfuscated methods retain the same meaning across app updates.
+  VERSION=$(meta_version) || VERSION=
+  if [ "$VERSION" = "$SUPPORTED_VERSION" ]; then return 0; fi
+  if [ -z "$VERSION" ]; then
+    set_status 'Meta version unreadable: controller stopped; retry after unlock/reboot'
+  else
+    set_status 'Unsupported Meta build: controller stopped; compatible adapter required'
+  fi
+  return 1
+}
 policy_step() {
   NEXT_SLEEP=60
   if [ ! -s "$MODDIR/background.js" ] || [ -z "$GLASSES_NAME" ]; then
@@ -96,7 +113,8 @@ policy_step() {
     fi
     VERSION=$(meta_version)
     if [ "$VERSION" != "$SUPPORTED_VERSION" ]; then
-      set_status 'Unsupported or unreadable Meta version: automation idle'
+      RETIRE_CONTROLLER=1
+      set_status 'Unsupported or unreadable Meta version: controller stopping'
       return
     fi
     start_meta
@@ -115,7 +133,8 @@ policy_step() {
   fi
   if [ "$VERSION" != "$SUPPORTED_VERSION" ]; then
     stop_owned_agent || return
-    set_status 'Unsupported or unreadable Meta version: automation idle'
+    RETIRE_CONTROLLER=1
+    set_status 'Unsupported or unreadable Meta version: controller stopping'
     return
   fi
   stop_owned_agent || return

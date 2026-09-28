@@ -11,7 +11,7 @@ import unittest
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
-PUBLIC = ROOT / "dist/meta-earbud-background-v1.1.0-public.zip"
+PUBLIC = ROOT / "dist/meta-earbud-background-v1.1.1-public.zip"
 BASH = os.environ.get("TEST_BASH") or shutil.which("bash")
 HEADSET = ":".join(["02", "00", "00", "00", "00", "01"])
 GLASSES = ":".join(["02", "00", "00", "00", "00", "02"])
@@ -111,7 +111,7 @@ class ReleaseTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         result = subprocess.run([BASH, str(ROOT / "tests/test-policy.sh"), self.folder.as_posix()], capture_output=True, text=True)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-        self.assertIn("PASS 27 assertions", result.stdout)
+        self.assertIn("PASS 33 assertions", result.stdout)
 
     def test_builder_rejects_device_specific_configuration(self):
         import sys
